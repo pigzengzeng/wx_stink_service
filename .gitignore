@@ -1,0 +1,22 @@
+*/config/development
+*/logs/log-*.php
+!*/logs/index.html
+*/cache/*
+!*/cache/index.html
+!*/cache/.htaccess
+#codeigniter 3
+application/logs/*
+!application/logs/index.html
+!application/logs/.htaccess
+/vendor/
+
+.DS_Store
+.idea/*
+.settings
+.buildpath
+.project
+ci.iml
+composer.lock
+*.bak
+*__pycache__*
+
