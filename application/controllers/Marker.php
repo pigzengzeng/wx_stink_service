@@ -32,9 +32,13 @@ class Marker extends BaseApiController {
 		
 	}
 	public function get_markers(){
+		$x1 = $this->input->get('x1');
+		$y1 = $this->input->get('y1');
+		$x2 = $this->input->get('x2');
+		$y2 = $this->input->get('y2');
 		$r = new stdClass();
 		
-		$markers = $this->marker_model->get_markers(0);
+		$markers = $this->marker_model->get_markers($x1,$y1,$x2,$y2);
 		if(empty($markers)){
 			$this->response($this->retv->gen_error(ErrorCode::$DbEmpty) );
 		}
@@ -49,7 +53,10 @@ class Marker extends BaseApiController {
 			$marker['longitude'] = $item['longitude'];
 			//$marker['title'] = $item['odour'];
 			//$marker['iconPath'] = self::ICON_PATH."stink_{$item['odour']}.png";
-			$marker['iconPath'] = self::ICON_PATH."marker.png";
+			$marker['iconPath'] = self::ICON_PATH."marker_{$item['odour']}.png";
+			//$marker['iconPathSelected'] = self::ICON_PATH."marker_{$item['odour']}_checked.png";
+			$marker['iconPathChecked'] = self::ICON_PATH."marker_checked.png";
+			$marker['iconPathUnchecked'] = self::ICON_PATH."marker_{$item['odour']}.png";
 			$marker['width'] = 22;
 			$marker['height']= 32;
 // 			$marker['callout']['content'] = $this->odours[$item['odour']];
@@ -106,13 +113,17 @@ class Marker extends BaseApiController {
 		$marker = $this->marker_model->get_marker_by_id($markerid);
 		
 		$markerInfo['markerId'] = $marker['pk_marker'];
-		$markerInfo['iconPath'] = self::ICON_PATH."stink_{$marker['odour']}.png";
+
+		//$markerInfo['iconPath'] = self::ICON_PATH."stink_{$marker['odour']}.png";
+		//$markerInfo['iconPath'] = self::ICON_PATH."marker_{$item['odour']}.png";
+
 		//$markerInfo['iconPath'] = self::ICON_PATH."marker.png";
+		//$markerInfo['iconPathChecked'] = self::ICON_PATH."marker_checked.png";
 		$markerInfo['longitude'] = $marker['longitude'];
 		$markerInfo['latitude'] = $marker['latitude'];
 		$markerInfo['title'] = $this->odours[$marker['odour']];
 		$markerInfo['state'] = $marker['state'];
-		$markerInfo['createtime'] = $marker['createtime'];
+		$markerInfo['createtime'] = date('m月d日H点',strtotime($marker['createtime']));
 		$markerInfo['user']['id'] = $marker['fk_user'];
 		
 		$user = $this->user_model->get_user_by_userid($marker['fk_user']);
@@ -120,7 +131,54 @@ class Marker extends BaseApiController {
 		$this->response($this->retv->gen_result($markerInfo));
 		
 	}
-	
+	public function delete_marker(){
+		$markerid = $this->input->get('markerid');
+		if(empty($markerid)){
+			$this->response($this->retv->gen_error(ErrorCode::$ParamError));
+		}
+		if(empty($this->session->userid)){
+			$this->response($this->retv->gen_error(ErrorCode::$IllegalUser) );
+		}
+		$userid = $this->session->userid;
+		
+		$marker = $this->marker_model->get_marker_by_id($markerid);
+		if($marker['fk_user']!=$userid){
+			$this->response($this->retv->gen_error(ErrorCode::$PermissionDenied) );
+		}
+		$affect = $this->marker_model->delete_marker($markerid);
+		
+		$this->response($this->retv->gen_delete($affect));
+	}
+	public function update_marker(){
+		$json_data = $this->input->raw_input_stream;
+		$data = json_decode($json_data);
+		$r = new stdClass();
+		if(empty($data)){
+			$this->response($this->renv->gen_error(ErrorCode::$ParamError));
+		}
+		$markerid=$data->markerId;
+		if(empty($markerid)){
+			$this->response($this->retv->gen_error(ErrorCode::$ParamError));
+		}
+		
+		if(empty($this->session->userid)){
+			$this->response($this->retv->gen_error(ErrorCode::$IllegalUser) );
+		}
+		$userid = $this->session->userid;
+		$marker = $this->marker_model->get_marker_by_id($markerid);
+		if($marker['fk_user']!=$userid){
+			$this->response($this->retv->gen_error(ErrorCode::$PermissionDenied) );
+		}
+		$affect = $this->marker_model->update_marker($markerid,$data->odour);
+		if($affect==1){
+			$this->response($this->retv->gen_update($affect));
+		}else{
+			$this->response($this->retv->gen_error(ErrorCode::$DbError));
+		}
+		
+		
+		
+	}
 	private function is_bindwx(){
 		if(empty($this->session->userid)){
 			return false;
@@ -133,10 +191,11 @@ class Marker extends BaseApiController {
 		}
 		
 		//这里需要换成电话，手机号码必须留
-		if(empty($user['nickname_memo'])){
+		if(empty($user['nickname'])){
 			return false;
 		}
 		return true;
 	}
+	
 	
 }

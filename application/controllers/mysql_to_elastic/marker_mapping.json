@@ -1,0 +1,65 @@
+curl -XPUT "http://127.0.0.1:9200/markers" -H 'Content-Type: application/json' -d '
+{
+    "settings": {
+        "number_of_shards":1,
+        "number_of_replicas":0
+    },
+    "mappings":{
+      "test":{
+        "dynamic":"false",
+        "properties" : {
+          "pk_marker" : {
+            "type" : "integer"
+          },
+          "odour" : {
+            "type" : "short"
+          },
+          "fk_user" : {
+            "type" : "integer"
+          },
+          "state" : {
+            "type" : "short"
+          },
+          "createtime" : {
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss"
+          },
+          "lastupdate":{
+            "type" : "date",
+            "format" : "yyyy-MM-dd HH:mm:ss"
+          },
+          "latitude":{
+            "type":"float"
+          },
+          "location":{
+            "type": "geo_point"
+          }
+        }
+      }
+    }
+}
+'
+
+
+curl -XGET "http://127.0.0.1:9200/markers/test/_search?pretty" -H 'Content-Type: application/json' -d '
+{
+  "query": {
+    "bool": {
+      "filter": {
+        "geo_bounding_box": {
+          "location": {
+            "top_left": {
+              "lat": "40.95",
+              "lon": "106"
+            },
+            "bottom_right": {
+              "lat": "39.95",
+              "lon": 117
+            }
+          }
+        }
+      }
+    }
+  }
+}'
+

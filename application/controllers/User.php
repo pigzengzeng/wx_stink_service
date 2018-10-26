@@ -48,6 +48,7 @@ class User extends BaseApiController {
 				'userid'=>$userid)
 		);
 		$r->session_id = $this->session->session_id;
+		$r->userid = $userid;
 		$this->response($this->retv->gen_result($r));			
 		
 		

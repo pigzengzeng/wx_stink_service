@@ -41,13 +41,13 @@ class MysqlElasticSynchronizer extends CI_Controller {
 	        log_message('error','This script is only run in cli mode.');
 	        exit();
 	    }
-	    if (!function_exists('pcntl_signal')){
-	        log_message('info','pcntl_signal is required, IgnoreSignal not work!');
-	        exit();
-	    }
-	    $sig_handler = function($signo){
-	        $this->signo = $signo;
-	    };
+// 	    if (!function_exists('pcntl_signal')){
+// 	        log_message('info','pcntl_signal is required, IgnoreSignal not work!');
+// 	        exit();
+// 	    }
+// 	    $sig_handler = function($signo){
+// 	        $this->signo = $signo;
+// 	    };
 // 	    //注册信号
 // 	    pcntl_signal(SIGTERM, $sig_handler);
 // 	    pcntl_signal(SIGINT, $sig_handler);//Ctrl+C

@@ -58,6 +58,7 @@ class User_model extends CI_model
 	public function insert_user($openid){
 		if(!$this->db_main
 				->set('openid', $openid)
+                ->set('createtime',date('Y-m-d H:i:s'))
 				->insert('t_user')) {
 			$error = $this->db_main->error();
 			throw new Exception($error['message'], $error['code']);
