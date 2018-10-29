@@ -48,9 +48,9 @@ class Marker extends BaseApiController {
  		}
 		foreach ($markers as $item){
 			$marker = [];
-			$marker['id'] = $item['pk_marker'];
-			$marker['latitude'] = $item['latitude'];
-			$marker['longitude'] = $item['longitude'];
+			$marker['id'] = (int)$item['pk_marker'];
+			$marker['latitude'] = (double)$item['latitude'];
+			$marker['longitude'] = (double)$item['longitude'];
 			//$marker['title'] = $item['odour'];
 			//$marker['iconPath'] = self::ICON_PATH."stink_{$item['odour']}.png";
 			$marker['iconPath'] = self::ICON_PATH."marker_{$item['odour']}.png";
@@ -119,12 +119,12 @@ class Marker extends BaseApiController {
 
 		//$markerInfo['iconPath'] = self::ICON_PATH."marker.png";
 		//$markerInfo['iconPathChecked'] = self::ICON_PATH."marker_checked.png";
-		$markerInfo['longitude'] = $marker['longitude'];
-		$markerInfo['latitude'] = $marker['latitude'];
+		$markerInfo['longitude'] = (double)$marker['longitude'];
+		$markerInfo['latitude'] = (double)$marker['latitude'];
 		$markerInfo['title'] = $this->odours[$marker['odour']];
-		$markerInfo['state'] = $marker['state'];
+		$markerInfo['state'] = (int)$marker['state'];
 		$markerInfo['createtime'] = date('m月d日H点',strtotime($marker['createtime']));
-		$markerInfo['user']['id'] = $marker['fk_user'];
+		$markerInfo['user']['id'] = (int)$marker['fk_user'];
 		
 		$user = $this->user_model->get_user_by_userid($marker['fk_user']);
 		$markerInfo['user']['name'] = empty($user['nickname_memo'])?$user['nickname']:$user['nickname_memo'];
