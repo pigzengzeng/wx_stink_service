@@ -18,4 +18,4 @@ ci.iml
 composer.lock
 *.bak
 *__pycache__*
-
+index.php
