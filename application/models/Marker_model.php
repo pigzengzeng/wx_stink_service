@@ -66,12 +66,12 @@ class Marker_model extends CI_model
 							['geo_bounding_box' =>[
 									'location' =>[
 											'top_right'=>[
-													'lat'=> $y1,
-													'lon'=> $x1
+													'lat'=> doubleval($y1),
+													'lon'=> doubleval($x1)
 											],
 											'bottom_left'=>[
-													'lat'=> $y2,
-													'lon'=> $x2
+													'lat'=> doubleval($y2),
+													'lon'=> doubleval($x2)
 											]
 									]
 							]]
