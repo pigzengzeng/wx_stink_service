@@ -23,12 +23,12 @@ class Marker_to_es extends MysqlElasticSynchronizer {
 
 		
 		
-		$this->set_select('pk_marker,longitude,latitude,odour,fk_user,state,createtime,lastupdate');//由于下面对mysql_read进行了重构，所以这里的设置只是为了用来统计需要处理的记录数,没必要返回过多字段
+		$this->set_select('pk_marker,longitude,latitude,odour,intensity,fk_user,state,createtime,lastupdate');//由于下面对mysql_read进行了重构，所以这里的设置只是为了用来统计需要处理的记录数,没必要返回过多字段
 		$this->set_table('t_marker');
 		$this->set_utime_field('lastupdate'); //最后更新时间字段，数据库的字段名
 		$this->set_primary_field('pk_marker'); //主键字段，如果最后更新时间相同，没有主键进行辅助排序，分页会造成数据丢失
 		
-		$this->set_elastic_index('markers');
+		$this->set_elastic_index('markers_v2');
 		$this->set_elastic_index_type('test');
 		$this->set_elastic_id_field('pk_marker'); //ES上的字段名,使用schema时一定在下面的schema中的key出现，如果不使用schema，则一定在select中出现
 		

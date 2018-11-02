@@ -5,13 +5,22 @@ class Marker extends BaseApiController {
 	const ICON_PATH = '../../images/';
 	//key用于icon对应的文件名
 	private $odours = [
-			'1'=>'药味',
-			'2'=>'臭味',
-			'3'=>'咸鱼味',
-			'4'=>'臭鸡蛋味',
-			'5'=>'油烟味',
-			'99'=>'无法分辨'
+			'1'=>'农药化工味',
+			'2'=>'臭鸡蛋味',
+			'3'=>'臭鱼烂肉味',
+			'4'=>'烂白菜味',
+			'5'=>'油脂薰蒸味',
+			'99'=>'难以辨别'
 	];
+	private $odours_sign = [ //简写，用于marker图标
+			'1'=>'农化',
+			'2'=>'臭蛋',
+			'3'=>'鱼腐',
+			'4'=>'烂菜',
+			'5'=>'油脂',
+			'99'=>'难辨'
+	];
+
 	const APPID = 'wxa6e3fde558ae29e2';
 	const APP_SECRET = '5b622697af174a0bb384433366801d49';
 	
@@ -25,11 +34,22 @@ class Marker extends BaseApiController {
 		$this->load->model('user_model');
 	}
 	
-	public function get_odours(){
+	public function get_odours(){//老版
 		$r = new stdClass();
 		$r->odours = $this->odours;
 		$this->response($this->retv->gen_result($r));
 		
+	}
+	public function get_odours_v2(){
+		$r = new stdClass();
+		foreach ($this->odours as $key => $value) {
+			$odour = array();
+			$odour['name'] = $value;
+			$odour['value'] = $key;
+			if($key==1)$odour['checked'] = true;
+			$r->odours[] = $odour;
+		}
+		$this->response($this->retv->gen_result($r));
 	}
 	public function get_markers(){
 		$x1 = $this->input->get('x1');
@@ -49,21 +69,35 @@ class Marker extends BaseApiController {
 		foreach ($markers as $item){
 			$marker = [];
 			$marker['id'] = (int)$item['pk_marker'];
+			//$marker['zIndex'] = 0;
+		
 			$marker['latitude'] = (double)$item['latitude'];
 			$marker['longitude'] = (double)$item['longitude'];
 			//$marker['title'] = $item['odour'];
 			//$marker['iconPath'] = self::ICON_PATH."stink_{$item['odour']}.png";
-			$marker['iconPath'] = self::ICON_PATH."marker_{$item['odour']}.png";
+			//$marker['iconPath'] = self::ICON_PATH."marker_{$item['odour']}.png";
 			//$marker['iconPathSelected'] = self::ICON_PATH."marker_{$item['odour']}_checked.png";
-			$marker['iconPathChecked'] = self::ICON_PATH."marker_checked.png";
-			$marker['iconPathUnchecked'] = self::ICON_PATH."marker_{$item['odour']}.png";
-			$marker['width'] = 22;
-			$marker['height']= 32;
+			$marker['iconPathChecked'] = self::ICON_PATH."marker_{$item['odour']}_{$item['intensity']}_s.png";
+			$marker['iconPathUnchecked'] = self::ICON_PATH."marker_{$item['odour']}_{$item['intensity']}.png";
+			$marker['iconPath'] = $marker['iconPathUnchecked'];
+			$marker['width'] = 50;
+			$marker['height']= 44;
+			$marker['anchor']['x']= 0.3;
+			$marker['anchor']['y']= 1;
+
+			//$marker['label']['content'] = $this->odours_sign[$item['odour']];
+			// $marker['label']['color'] = "#FFFFFF";
+			// $marker['label']['padding'] = 0;
+			//$marker['label']['anchorX'] = -6;
+			//$marker['label']['anchorY'] = -13;
+			// $marker['label']['x'] = -8;
+			// $marker['label']['y'] = -20;
+			//$marker['label']['textAlign'] = 'center';
+
+
 // 			$marker['callout']['content'] = $this->odours[$item['odour']];
 // 			$marker['callout']['display'] = "ALWAYS";  //BYCLICK
 // 			$marker['callout']['textAlign'] = "center";
-			
-			//$marker['label']['content'] = $this->odours[$item['odour']];
 			
 			
 			$r->markers[] = (object)$marker;
@@ -88,18 +122,34 @@ class Marker extends BaseApiController {
 			$this->response($this->retv->gen_error(ErrorCode::$UnBind) );
 		}
 
-		$lastid = 0;
-		if( $lastid = $this->marker_model->add_marker(
-				$data->longitude, 
-				$data->latitude, 
-				$data->odour,
-				$userid) ){
-			
-			$r->lastid = $lastid;
-			$this->response($this->retv->gen_result($r));
-					
-		}else{
-			$this->response($this->retv->gen_error(ErrorCode::$DbError));
+		
+		if(empty($data->markerId)){//新建
+			$lastid = 0;
+			if( $lastid = $this->marker_model->add_marker(
+					$data->longitude, 
+					$data->latitude, 
+					$data->odour,
+					$data->intensity,
+					$userid) ){
+				$r->lastid = $lastid;
+				$this->response($this->retv->gen_result($r));
+						
+			}else{
+				$this->response($this->retv->gen_error(ErrorCode::$DbError));
+			}
+		}else{//更新
+			$markerid=$data->markerId;
+			$marker = $this->marker_model->get_marker_by_id($markerid);
+			if($marker['fk_user']!=$userid){
+				$this->response($this->retv->gen_error(ErrorCode::$PermissionDenied) );
+			}
+			$affect = $this->marker_model->update_marker($markerid,$data->odour,$data->intensity);
+			if($affect==1){
+				$this->response($this->retv->gen_update($affect));
+			}else{
+				$this->response($this->retv->gen_error(ErrorCode::$DbError));
+			}
+
 		}
 		
 	}
@@ -122,6 +172,8 @@ class Marker extends BaseApiController {
 		$markerInfo['longitude'] = (double)$marker['longitude'];
 		$markerInfo['latitude'] = (double)$marker['latitude'];
 		$markerInfo['title'] = $this->odours[$marker['odour']];
+		$markerInfo['odour'] = (int)$marker['odour'];
+		$markerInfo['intensity'] = (int)$marker['intensity'];
 		$markerInfo['state'] = (int)$marker['state'];
 		$markerInfo['createtime'] = date('m月d日H点',strtotime($marker['createtime']));
 		$markerInfo['user']['id'] = (int)$marker['fk_user'];

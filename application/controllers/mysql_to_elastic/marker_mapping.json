@@ -1,4 +1,4 @@
-curl -XPUT "http://127.0.0.1:9200/markers" -H 'Content-Type: application/json' -d '
+curl -XPUT "http://127.0.0.1:9200/markers_v2" -H 'Content-Type: application/json' -d '
 {
     "settings": {
         "number_of_shards":1,
@@ -12,6 +12,9 @@ curl -XPUT "http://127.0.0.1:9200/markers" -H 'Content-Type: application/json' -
             "type" : "integer"
           },
           "odour" : {
+            "type" : "short"
+          },
+          "intensity" : {
             "type" : "short"
           },
           "fk_user" : {
@@ -41,6 +44,14 @@ curl -XPUT "http://127.0.0.1:9200/markers" -H 'Content-Type: application/json' -
 '
 
 
+
+
+
+
+
+
+
+
 curl -XGET "http://127.0.0.1:9200/markers/test/_search?pretty" -H 'Content-Type: application/json' -d '
 {
   "query": {
@@ -63,3 +74,23 @@ curl -XGET "http://127.0.0.1:9200/markers/test/_search?pretty" -H 'Content-Type:
   }
 }'
 
+创建索引别名
+curl -XPUT /markers_v2/_alias/markers
+
+更新索引操作顺序
+1.创建新版本索引
+2.更新服务端代码
+3.重启脚本，脚本向新索引推数据
+supervisorctl restart marker2es 
+4.别名切换
+curl -XPOST "http://127.0.0.1:9200/_aliases" -H 'Content-Type: application/json' -d '
+{
+    "actions": [
+        { "remove": { "index": "marker_v1", "alias": "markers" }},
+        { "add":    { "index": "marker_v2", "alias": "markers" }}
+    ]
+}
+'
+5.删除旧索引
+删除索引
+curl -XDELETE http://127.0.0.1:9200/markers_v1
