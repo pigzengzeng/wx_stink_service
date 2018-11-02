@@ -118,9 +118,9 @@ class Marker extends BaseApiController {
 		}
 		$userid = $this->session->userid;
 		
-		if(!$this->is_bindwx()){
-			$this->response($this->retv->gen_error(ErrorCode::$UnBind) );
-		}
+		// if(!$this->is_bindwx()){
+		// 	$this->response($this->retv->gen_error(ErrorCode::$UnBind) );
+		// }
 
 		
 		if(empty($data->markerId)){//新建

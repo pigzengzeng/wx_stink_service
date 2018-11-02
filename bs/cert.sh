@@ -1,0 +1,1 @@
+openssl req -new -sha256 -key domain.key -subj "/" -reqexts SAN -config <(cat /etc/pki/tls/openssl.cnf <(printf "[SAN]\nsubjectAltName=DNS:api.gwrxhj.com,DNS:apib.gwrxhj.com,DNS:www.gwrxhj.com,DNS:gwrxhj.com")) > domain.csr
