@@ -210,7 +210,7 @@ class MysqlElasticSynchronizer extends CI_Controller {
 	        echo "do recordset count:$rs_count \n";
 	        
 	        $max_page = ceil($rs_count/$this->size);
-	        
+	        $do_result = true;
 	        for($i=1;$i<=$max_page;$i++){
 	        	if($this->use_gearman){ //使用gearman并发
 		        	$params = [
@@ -219,19 +219,27 @@ class MysqlElasticSynchronizer extends CI_Controller {
 		        			'to_utime'=>$to_utime
 		        	];
 		        	$ret[$i] = $this->gm_client->doBackground('push_elastic',json_encode($params) );
+		        	$do_result &= $ret[$i];
 	        	}else{ //使用程序串行执行
 	        		$limit = ($i-1) * $this->size;
 	        		$rs = $this->mysql_read($from_utime, $to_utime, $limit);
 	        		echo "do ".count($rs),"\n";
 	        		if(!empty($rs)){
-	        			$this->put_elastic($rs);
+	        			$do_result = $this->put_elastic($rs);
+	        			if(!$do_result)break;
 	        		}
 	        	}
 	        }
+	        //如果推送结果为true，则存储当前点，执行下一批，否则本次推送需要全部重新执行
+	        if($do_result){
+	        	$from_utime = $to_utime;
+		        $this->set_last_utime($to_utime);
+		        $this->save_last_utime();
+	        }else{
+	        	echo "elasticsearch service abnormal,wait...\n";
+	        	sleep($this->sleep_time);
+	        }
 	        
-	        $from_utime = $to_utime;
-	        $this->set_last_utime($to_utime);
-	        $this->save_last_utime();
 	    }
 	}
 	
@@ -336,10 +344,16 @@ class MysqlElasticSynchronizer extends CI_Controller {
 		}
 		
 		//初始化ES_Client
-		$client = Elasticsearch\ClientBuilder::create()->setHosts($this->elastic_config)->setRetries(2)->build();
- 		$response = $client->bulk($bulk);
- 		
- 		$this->log($response);
+		try{
+			$client = Elasticsearch\ClientBuilder::create()->setHosts($this->elastic_config)->setRetries(2)->build();
+	 		$response = $client->bulk($bulk);
+	 		$this->log($response);
+	 		return true;
+		}catch(Exception $e){
+			//$this->log($e);
+			return false;
+		}
+		
 	
 	
 
