@@ -67,6 +67,8 @@ class Marker extends BaseApiController {
 		$userid = empty($userid)?0:$userid;
 
 		$r = new stdClass();
+		$r->markers = array();
+
 		$df = 'Y-m-d H:i:s';
 		switch ($time_flag) {
 			case 1:
@@ -92,7 +94,8 @@ class Marker extends BaseApiController {
 		$markers = $this->marker_model->get_markers($x1,$y1,$x2,$y2,$time_from,$time_to,$userid);
 
 		if(empty($markers)){
-			$this->response($this->retv->gen_error(ErrorCode::$DbEmpty) );
+			//$this->response($this->retv->gen_error(ErrorCode::$DbEmpty) );
+
 		}
 		
  		
