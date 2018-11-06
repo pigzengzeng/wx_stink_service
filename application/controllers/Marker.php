@@ -144,7 +144,7 @@ class Marker extends BaseApiController {
 		$r = new stdClass();
 
 		if(empty($data)){
-			$this->response($this->renv->gen_error(ErrorCode::$ParamError));
+			$this->response($this->retv->gen_error(ErrorCode::$ParamError));
 		}
 		if(empty($this->session->openid)){//没有openid了，返回错误，客户端应该重新登录
 			$this->response($this->retv->gen_error(ErrorCode::$IllegalUser) );
@@ -246,7 +246,7 @@ class Marker extends BaseApiController {
 		$data = json_decode($json_data);
 		$r = new stdClass();
 		if(empty($data)){
-			$this->response($this->renv->gen_error(ErrorCode::$ParamError));
+			$this->response($this->retv->gen_error(ErrorCode::$ParamError));
 		}
 		$markerid=$data->markerId;
 		if(empty($markerid)){
