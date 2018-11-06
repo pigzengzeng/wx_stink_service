@@ -67,7 +67,7 @@ class Marker extends BaseApiController {
 		$userid = empty($userid)?0:$userid;
 
 		$r = new stdClass();
-		$df = 'Y-m-d H:m:s';
+		$df = 'Y-m-d H:i:s';
 		switch ($time_flag) {
 			case 1:
 				$time_from = date($df,time()-86400*7);
