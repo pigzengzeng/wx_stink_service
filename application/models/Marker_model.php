@@ -32,7 +32,7 @@ class Marker_model extends CI_model
 	 * 获取多个marker点
 	 */
     
-    public function get_markers($x1,$y1,$x2,$y2){
+    public function get_markers($x1,$y1,$x2,$y2,$time_from,$time_to,$userid){
     	/*数据库取数据
     	$size =100 ;
     	$this->db_query->select('*');
@@ -59,7 +59,6 @@ class Marker_model extends CI_model
     		'type' => 'test',
     		'body' => [
     			'query'=>[
-    					
 					'bool'=>[
 						'filter' =>[
 							['term'=>['state'=>0]],
@@ -79,9 +78,23 @@ class Marker_model extends CI_model
 					]
     			],
                 'size'=>200
-    			
     		]
 		];
+        //$params['body']=array();
+        if(!empty($time_from)){
+            $params['body']['query']['bool']['must']['range']['lastupdate']['gte'] = $time_from;
+            //$params['body']['query']['range']['lastupdate']['gte'] = $time_from;
+        }
+        
+        if(!empty($time_to)){
+            $params['body']['query']['bool']['must']['range']['lastupdate']['lte'] = $time_to;
+        }
+        
+        if(!empty($userid)){
+            $params['body']['query']['bool']['filter'][]['term']['fk_user'] = $userid;
+            
+        }
+    //print_r($params);
     	$markers = $client->search($params);
         
     	if(empty($markers['hits']['hits'])){

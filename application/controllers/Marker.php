@@ -56,16 +56,46 @@ class Marker extends BaseApiController {
 		$y1 = $this->input->get('y1');
 		$x2 = $this->input->get('x2');
 		$y2 = $this->input->get('y2');
-		$r = new stdClass();
+		$time_flag =  $this->input->get('time_flag');
 		
-		$markers = $this->marker_model->get_markers($x1,$y1,$x2,$y2);
+		if(empty($this->session->openid)){//没有openid了，返回错误，客户端应该重新登录
+ 			$this->response($this->retv->gen_error(ErrorCode::$IllegalUser) );
+ 		}
+
+		$time_flag = empty($time_flag)?0:$time_flag;
+		$userid = $this->session->userid;
+		$userid = empty($userid)?0:$userid;
+
+		$r = new stdClass();
+		$df = 'Y-m-d H:m:s';
+		switch ($time_flag) {
+			case 1:
+				$time_from = date($df,time()-86400*7);
+				$time_to = date($df,time());
+				$userid = 0;
+				break;
+			case 2:
+				$time_from = date($df,time()-86400*30);
+				$time_to = date($df,time());
+				$userid = 0;
+				break;
+			case 3:
+				$time_from = 0;
+				$time_to = 0;
+				break;
+			default:
+				$time_from = date($df,time()-86400);
+				$time_to = date($df,time());
+				$userid = 0;
+				break;
+		}
+		$markers = $this->marker_model->get_markers($x1,$y1,$x2,$y2,$time_from,$time_to,$userid);
+
 		if(empty($markers)){
 			$this->response($this->retv->gen_error(ErrorCode::$DbEmpty) );
 		}
 		
- 		if(empty($this->session->openid)){//没有openid了，返回错误，客户端应该重新登录
- 			$this->response($this->retv->gen_error(ErrorCode::$IllegalUser) );
- 		}
+ 		
 		foreach ($markers as $item){
 			$marker = [];
 			$marker['id'] = (int)$item['pk_marker'];
@@ -73,6 +103,9 @@ class Marker extends BaseApiController {
 		
 			$marker['latitude'] = (double)$item['latitude'];
 			$marker['longitude'] = (double)$item['longitude'];
+			$marker['createtime'] = $item['createtime'];
+			$marker['lastupdate'] = $item['lastupdate'];
+			$marker['userid'] = $item['fk_user'];
 			//$marker['title'] = $item['odour'];
 			//$marker['iconPath'] = self::ICON_PATH."stink_{$item['odour']}.png";
 			//$marker['iconPath'] = self::ICON_PATH."marker_{$item['odour']}.png";
@@ -175,7 +208,7 @@ class Marker extends BaseApiController {
 		$markerInfo['odour'] = (int)$marker['odour'];
 		$markerInfo['intensity'] = (int)$marker['intensity'];
 		$markerInfo['state'] = (int)$marker['state'];
-		$markerInfo['createtime'] = date('m月d日H点',strtotime($marker['createtime']));
+		$markerInfo['createtime'] = date('m月d日H点m分',strtotime($marker['createtime']));
 		$markerInfo['user']['id'] = (int)$marker['fk_user'];
 		
 		$user = $this->user_model->get_user_by_userid($marker['fk_user']);

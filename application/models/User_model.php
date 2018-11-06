@@ -52,7 +52,6 @@ class User_model extends CI_model
 		$user = $query->row_array();
 		if(empty($user))return false;
 		return $user;
-		
 	}
 	
 	public function insert_user($openid){

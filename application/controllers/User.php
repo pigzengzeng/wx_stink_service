@@ -80,4 +80,19 @@ class User extends BaseApiController {
 		$this->response($this->retv->gen_update($affect));
 		
 	}
+
+	public function get_user(){
+		
+		$userid = $this->session->userid;
+		if(empty($userid)){
+			$this->response($this->retv->gen_error(ErrorCode::$IllegalUser));
+		}
+		$user = $this->user_model->get_user_by_userid($userid);
+		if(empty($user)){
+			$this->response($this->retv->gen_error(ErrorCode::$IllegalUser));
+		}
+		$this->response($this->retv->gen_result($user));
+		
+	}
+
 }
