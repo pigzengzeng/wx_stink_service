@@ -259,9 +259,7 @@ class Marker extends BaseApiController {
 		$markerInfo['user']['id'] = (int)$marker['fk_user'];
 		$markerInfo['photos'] = array();
 		$user = $this->user_model->get_user_by_userid($marker['fk_user']);
-		if(!empty($user['nickname_memo'])){
-			$markerInfo['user']['name'] = $user['nickname_memo'];
-		}elseif(!empty($user['nickname'])){
+		if(!empty($user['nickname'])){
 			$markerInfo['user']['name'] = $user['nickname'];
 		}else{
 			$markerInfo['user']['name'] = '有人';

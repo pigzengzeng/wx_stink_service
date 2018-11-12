@@ -82,7 +82,7 @@ class User extends BaseApiController {
 		$userid = $this->session->userid;
 
 		$nickname = $data->nickname;
-		$realname = $data->nickname;
+		$realname = $data->realname;
 		$tel = $data->tel;
 		$gender = $data->gender;
 		$apply_wgy = $data->applyWgy;
