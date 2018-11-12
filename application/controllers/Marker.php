@@ -76,7 +76,7 @@ class Marker extends BaseApiController {
 		$this->response($this->retv->gen_result($r));
 	}
 	public function get_markers(){
-		$this->checkLogin();
+		$this->check_login();
 
 		$x1 = $this->input->get('x1');
 		$y1 = $this->input->get('y1');
@@ -171,7 +171,7 @@ class Marker extends BaseApiController {
 
 	}
 	public function save_marker(){
-		$this->checkLogin();
+		$this->check_login();
 
 		$json_data = $this->input->raw_input_stream;
 
@@ -229,7 +229,7 @@ class Marker extends BaseApiController {
 
 	
 	public function get_marker(){
-		$this->checkLogin();
+		$this->check_login();
 
 
 		$markerid = $this->input->get('markerid');
@@ -285,7 +285,7 @@ class Marker extends BaseApiController {
 		
 	}
 	public function delete_marker(){
-		$this->checkLogin();
+		$this->check_login();
 
 		$markerid = $this->input->get('markerid');
 		if(empty($markerid)){
@@ -305,7 +305,7 @@ class Marker extends BaseApiController {
 		$this->response($this->retv->gen_delete($affect));
 	}
 	public function update_marker(){
-		$this->checkLogin();
+		$this->check_login();
 
 		$json_data = $this->input->raw_input_stream;
 		$data = json_decode($json_data);

@@ -11,7 +11,7 @@ class User extends BaseApiController {
 	}
 	/**
 	 * 获取用户信息，如果没绑定，则进行绑定，返回sessionid
-	 * @return string
+	 * 
 	 */
 	public function get_login_info(){
 		$r = new stdClass();
@@ -59,7 +59,6 @@ class User extends BaseApiController {
 			$userinfo['user_type'] = $user['user_type'];
 			$userinfo['state'] = $user['state'];
 		}
-
 		$this->session->set_userdata(array(
 			'session_key'=>$session_key, //可以通过前端存储的session_key和后端取得的session_key对比判断登录是否已过期
 			'openid'=>$openid,
@@ -71,9 +70,9 @@ class User extends BaseApiController {
 		$this->response($this->retv->gen_result($r));			
 		
 	}
-	
+
 	public function save_user_info(){
-		$this->checkLogin();
+		$this->check_login();
 		$json_data = $this->input->raw_input_stream;
 		$data = json_decode($json_data);
 		$r = new stdClass();
@@ -162,7 +161,7 @@ class User extends BaseApiController {
 		
 	}
 
-	public function get_user(){
+	public function get_user(){//get_user已在其类中实现,暂时保留是为了老版本客户端兼容
 		
 		$userid = $this->session->userid;
 		if(empty($userid)){
