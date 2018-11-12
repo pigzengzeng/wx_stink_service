@@ -67,12 +67,11 @@ class User_model extends CI_model
 			return $lastid;
 		}
 	}
-	public function update_user($pk_user,$openid,$fields){
+	public function update_user($pk_user,$fields){
 		if(empty($fields)) return 0;
 		
 		if(!$this->db_main->set($fields)->
 				where('pk_user', $pk_user)->
-				where('openid', $openid)->
 				update('t_user')) {
 			$error = $this->db_main->error();
 			throw new Exception($error['message'], $error['code']);
@@ -83,46 +82,6 @@ class User_model extends CI_model
 	}
 	
 	
-    public function get_markers($range){
-    	$size =100 ;
-    	$this->db_query->select('*');
-    	$this->db_query->from('t_marker');
-    	$this->db_query->limit($size);
-    	
-    	if(!$query = $this->db_query->get()){
-    		$e = $this->db_query->error();
-    		throw new Exception($e['message'], $e['code']);
-    	}
-    	return $query->result_array();
-    	
-    }
-    
-    /**
-     * 新增点
-     *
-     **/
-    public function add_marker($longitude,$latitude,$odour) {
-        $fields = array();
-        $longitude = empty((double)$longitude)?0:(double)$longitude;
-        $latitude = empty((double)$latitude)?0:(double)$latitude;
-        $odour = empty($odour)?99:(int)$odour;
-        
-        if(!$this->db_main
-        		->set('longitude', $longitude)
-        		->set('latitude', $latitude)
-        		->set('odour',$odour)
-            ->insert('t_marker')) {
-            $error = $this->db_main->error();
-            throw new Exception($error['message'], $error['code']);
-        }
-
-        $lastid = $this->db_main->insert_id();
-
-        if($lastid) {
-	        return $lastid;
-        }
-        return false;
-    }
     
    
 

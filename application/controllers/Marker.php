@@ -1,6 +1,8 @@
 <?php
 
 
+use PhpParser\Node\Stmt\TryCatch;
+
 class Marker extends BaseApiController {
 	const ICON_PATH = '../../images/';
 	//key用于icon对应的文件名
@@ -20,6 +22,25 @@ class Marker extends BaseApiController {
 			'5'=>'油脂',
 			'99'=>'难辨'
 	];
+	
+	private $city = [
+		'1'=>'北京',
+		'2'=>'日照'
+	];
+	//主键需要与$city对应
+	private $domain = [
+		'1'=>['wn'=>['lon'=>115.25027777777778,'lat'=>40.78888888888889],	//西北，左上角
+			  'en'=>['lon'=>115.25027777777778,'lat'=>40.78888888888889]],	//东南，右下角
+		'2'=>['wn'=>['lon'=>115.25027777777778,'lat'=>40.78888888888889],	//西北，左上角
+			  'en'=>['lon'=>115.25027777777778,'lat'=>40.78888888888889]],	//东南，右下角	
+	];
+	//主键需要与$city对应
+	private $geojson = [
+		'1'=>[
+			[[],[]]
+		]
+	];
+
 
 	const APPID = 'wxa6e3fde558ae29e2';
 	const APP_SECRET = '5b622697af174a0bb384433366801d49';
@@ -27,11 +48,14 @@ class Marker extends BaseApiController {
 	
 	public function __construct(){
 		parent::__construct();
+		$this->load->helper('url');
 		$this->load->library('curl');
 		$this->load->library('session');
 		$this->load->library('retv');
 		$this->load->model('marker_model');
+		$this->load->model('marker_photo_model');
 		$this->load->model('user_model');
+		$this->load->model('res_model');
 	}
 	
 	public function get_odours(){//老版
@@ -52,15 +76,15 @@ class Marker extends BaseApiController {
 		$this->response($this->retv->gen_result($r));
 	}
 	public function get_markers(){
+		$this->checkLogin();
+
 		$x1 = $this->input->get('x1');
 		$y1 = $this->input->get('y1');
 		$x2 = $this->input->get('x2');
 		$y2 = $this->input->get('y2');
 		$time_flag =  $this->input->get('time_flag');
 		
-		if(empty($this->session->openid)){//没有openid了，返回错误，客户端应该重新登录
- 			$this->response($this->retv->gen_error(ErrorCode::$IllegalUser) );
- 		}
+		
 
 		$time_flag = empty($time_flag)?0:$time_flag;
 		$userid = $this->session->userid;
@@ -91,7 +115,12 @@ class Marker extends BaseApiController {
 				$userid = 0;
 				break;
 		}
-		$markers = $this->marker_model->get_markers($x1,$y1,$x2,$y2,$time_from,$time_to,$userid);
+		try{
+			$markers = $this->marker_model->get_markers($x1,$y1,$x2,$y2,$time_from,$time_to,$userid);
+		}catch (Exception $e){
+			$this->response($this->retv->gen_result($r));
+		}
+		
 
 		if(empty($markers)){
 			//$this->response($this->retv->gen_error(ErrorCode::$DbEmpty) );
@@ -142,18 +171,23 @@ class Marker extends BaseApiController {
 
 	}
 	public function save_marker(){
+		$this->checkLogin();
+
 		$json_data = $this->input->raw_input_stream;
+
 		$data = json_decode($json_data);
 		$r = new stdClass();
 
 		if(empty($data)){
 			$this->response($this->retv->gen_error(ErrorCode::$ParamError));
 		}
-		if(empty($this->session->openid)){//没有openid了，返回错误，客户端应该重新登录
-			$this->response($this->retv->gen_error(ErrorCode::$IllegalUser) );
-		}
+		
+
 		$userid = $this->session->userid;
 		
+		if(empty($data->remark))$data->remark='';
+		if(empty($data->photos))$data->photos=array();
+
 		// if(!$this->is_bindwx()){
 		// 	$this->response($this->retv->gen_error(ErrorCode::$UnBind) );
 		// }
@@ -166,8 +200,12 @@ class Marker extends BaseApiController {
 					$data->latitude, 
 					$data->odour,
 					$data->intensity,
+					$data->remark,
 					$userid) ){
 				$r->lastid = $lastid;
+
+				$this->marker_photo_model->add_marker_photo($lastid,$data->photos);
+
 				$this->response($this->retv->gen_result($r));
 						
 			}else{
@@ -179,25 +217,30 @@ class Marker extends BaseApiController {
 			if($marker['fk_user']!=$userid){
 				$this->response($this->retv->gen_error(ErrorCode::$PermissionDenied) );
 			}
-			$affect = $this->marker_model->update_marker($markerid,$data->odour,$data->intensity);
-			if($affect==1){
-				$this->response($this->retv->gen_update($affect));
-			}else{
-				$this->response($this->retv->gen_error(ErrorCode::$DbError));
-			}
+			$affect = $this->marker_model->update_marker($markerid,$data->odour,$data->intensity,$data->remark);
 
+			if(!empty($data->photos)){
+				$this->marker_photo_model->del_marker_photo_by_markerid($markerid);
+				$this->marker_photo_model->add_marker_photo($markerid,$data->photos);
+			}
+			$this->response($this->retv->gen_result($affect));
 		}
-		
 	}
+
 	
 	public function get_marker(){
+		$this->checkLogin();
+
+
 		$markerid = $this->input->get('markerid');
 		if(empty($markerid)){
 			$this->response($this->retv->gen_error(ErrorCode::$ParamError));
 		}
 		
 		$marker = $this->marker_model->get_marker_by_id($markerid);
-		
+		if(empty($marker)){
+			$this->response($this->retv->gen_error(ErrorCode::$ParamError));
+		}
 		$markerInfo['markerId'] = $marker['pk_marker'];
 
 		//$markerInfo['iconPath'] = self::ICON_PATH."stink_{$marker['odour']}.png";
@@ -210,10 +253,11 @@ class Marker extends BaseApiController {
 		$markerInfo['title'] = $this->odours[$marker['odour']];
 		$markerInfo['odour'] = (int)$marker['odour'];
 		$markerInfo['intensity'] = (int)$marker['intensity'];
+		$markerInfo['remark'] = $marker['remark'];
 		$markerInfo['state'] = (int)$marker['state'];
 		$markerInfo['createtime'] = date('m月d日H点m分',strtotime($marker['createtime']));
 		$markerInfo['user']['id'] = (int)$marker['fk_user'];
-		
+		$markerInfo['photos'] = array();
 		$user = $this->user_model->get_user_by_userid($marker['fk_user']);
 		if(!empty($user['nickname_memo'])){
 			$markerInfo['user']['name'] = $user['nickname_memo'];
@@ -223,10 +267,26 @@ class Marker extends BaseApiController {
 			$markerInfo['user']['name'] = '有人';
 		}
 		
+		$photos = $this->marker_photo_model->get_photos_by_markerid($markerid);
+		if(!empty($photos)){
+			$file_name_keys = array();
+			foreach ($photos as  $photo) {
+				$file_name_keys[] = $photo['file_name_key'];
+			}
+			$files = $this->res_model->get_files_by_key($file_name_keys);
+			if(!empty($files)){
+				foreach ($files as $file) {
+					$markerInfo['photo_urls'][] = base_url('uploadfiles/').$file['orig_name'] ;
+				}
+			}
+			
+		}
 		$this->response($this->retv->gen_result($markerInfo));
 		
 	}
 	public function delete_marker(){
+		$this->checkLogin();
+
 		$markerid = $this->input->get('markerid');
 		if(empty($markerid)){
 			$this->response($this->retv->gen_error(ErrorCode::$ParamError));
@@ -245,6 +305,8 @@ class Marker extends BaseApiController {
 		$this->response($this->retv->gen_delete($affect));
 	}
 	public function update_marker(){
+		$this->checkLogin();
+
 		$json_data = $this->input->raw_input_stream;
 		$data = json_decode($json_data);
 		$r = new stdClass();

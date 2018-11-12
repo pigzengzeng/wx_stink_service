@@ -10,6 +10,9 @@ class ErrorCode{
 	public static $PermissionDenied = -6;
 	public static $DbError = -10;
 	public static $DbEmpty = -11;
+	
+	public static $UploadError = -20;
+	
 	public static $IllegalAesKey = -41001;
 	public static $IllegalIv = -41002;
 	public static $IllegalBuffer = -41003;

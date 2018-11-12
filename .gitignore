@@ -10,7 +10,7 @@
 application/logs/*
 !application/logs/index.html
 !application/logs/.htaccess
-
+application/resfiles/*
 .DS_Store
 .idea/*
 .settings

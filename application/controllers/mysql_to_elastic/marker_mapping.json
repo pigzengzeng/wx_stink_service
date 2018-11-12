@@ -93,4 +93,4 @@ curl -XPOST "http://127.0.0.1:9200/_aliases" -H 'Content-Type: application/json'
 '
 5.删除旧索引
 删除索引
-curl -XDELETE http://127.0.0.1:9200/markers
+curl -XDELETE http://127.0.0.1:9200/markers_v2

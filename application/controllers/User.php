@@ -35,25 +35,106 @@ class User extends BaseApiController {
 			$this->response($this->retv->gen_error(ErrorCode::$IllegalRequest));			
 		}
 		
-		$session_key = $data->session_key;
+		$session_key = $data->session_key;  //
 		$openid = $data->openid;
 		
-		$userid = $this->user_model->bind_wx($openid);
-		if(!$userid){
-			$this->response($this->retv->gen_error(ErrorCode::$DbError) );
+		$userinfo = array();
+
+		$user = $this->user_model->get_user_by_openid($openid);
+		if(empty($user)){//数据库里还没有，选塞一条记录进去
+			$userid = $this->user_model->insert_user($openid);
+			$userinfo['userid'] = $userid;
+			$userinfo['nickname'] = '';
+			$userinfo['realname'] = '';
+			$userinfo['tel'] = '';
+			$userinfo['gender'] = '0';
+			$userinfo['user_type'] = '0';
+			$userinfo['state'] = '0';
+		}else{//数据库里已有记录，则使用
+			$userinfo['userid'] = $user['pk_user'];
+			$userinfo['nickname'] = $user['nickname'];
+			$userinfo['realname'] = $user['realname'];
+			$userinfo['tel'] = $user['tel'];
+			$userinfo['gender'] = $user['gender'];
+			$userinfo['user_type'] = $user['user_type'];
+			$userinfo['state'] = $user['state'];
 		}
+
 		$this->session->set_userdata(array(
-				'session_key'=>$session_key,
-				'openid'=>$openid,
-				'userid'=>$userid)
-		);
+			'session_key'=>$session_key, //可以通过前端存储的session_key和后端取得的session_key对比判断登录是否已过期
+			'openid'=>$openid,
+			'userid'=>$userinfo['userid'],
+		));
 		$r->session_id = $this->session->session_id;
-		$r->userid = $userid;
+		$r->userid = $userinfo['userid'];
+		$r->userinfo = $userinfo;
 		$this->response($this->retv->gen_result($r));			
-		
 		
 	}
 	
+	public function save_user_info(){
+		$this->checkLogin();
+		$json_data = $this->input->raw_input_stream;
+		$data = json_decode($json_data);
+		$r = new stdClass();
+		if(empty($data)){
+			$this->response($this->retv->gen_error(ErrorCode::$ParamError));
+		}
+		$userid = $this->session->userid;
+
+		$nickname = $data->nickname;
+		$realname = $data->nickname;
+		$tel = $data->tel;
+		$gender = $data->gender;
+		$apply_wgy = $data->applyWgy;
+
+		$user = $this->user_model->get_user_by_userid($userid);
+		if(empty($user)){
+			$this->response($this->retv->gen_error(ErrorCode::$IllegalUser));
+		}
+
+		if($user['state']==1){//被屏蔽的用户
+			$this->response($this->retv->gen_error(ErrorCode::$PermissionDenied));
+		}
+		if($user['user_type']==1){//网格员只能更新昵称
+			$fields['nickname'] = $nickname;
+		}
+
+		if($user['user_type']==0){//普通用户可能随便改自己所有信息
+			$fields['nickname'] = $nickname;
+			$fields['realname'] = $realname;
+			$fields['tel'] = $tel;
+			$fields['gender'] = $gender?1:0;
+
+			if($apply_wgy){
+				$fields['state']=2;
+
+				//审请网格员，现在如果以上内容都填了自动审核通过
+				if( !empty($fields['nickname']) && 
+					!empty($fields['realname']) && 
+					!empty($fields['tel'])
+				){
+					$fields['state']=0;
+					$fields['user_type']=1;
+				}
+			}
+		}
+
+		try{
+			$affect = $this->user_model->update_user($userid,$fields);
+			$this->response($this->retv->gen_update($affect));
+
+		}catch(Execaption $e){
+			$this->response($this->retv->gen_error(ErrorCode::$DbError,$e['message']));
+		}
+		
+
+		
+
+		
+
+	}
+
 	public function bind_wx(){
 		$openid = $this->session->openid;
 		$userid = $this->session->userid;
@@ -76,7 +157,7 @@ class User extends BaseApiController {
 		$fields['nickname'] = $data->nickName;
 		$fields['nickname_memo'] = $data->nickNameMemo;
 		
-		$affect = $this->user_model->update_user($userid,$openid,$fields);
+		$affect = $this->user_model->update_user($userid,$fields);
 		$this->response($this->retv->gen_update($affect));
 		
 	}
