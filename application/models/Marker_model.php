@@ -127,12 +127,13 @@ class Marker_model extends CI_model
      * 新增点
      *
      **/
-    public function add_marker($longitude,$latitude,$odour,$intensity,$remark,$userid) {
+    public function add_marker($longitude,$latitude,$odour,$intensity,$remark,$level,$userid) {
         $fields = array();
         $longitude = empty((double)$longitude)?0:(double)$longitude;
         $latitude = empty((double)$latitude)?0:(double)$latitude;
         $odour = empty($odour)?99:(int)$odour;
         $intensity = empty($intensity)?1:(int)$intensity;
+        $level = (int)$level;
         
         if(!$this->db_main
         		->set('longitude', $longitude)
@@ -140,6 +141,7 @@ class Marker_model extends CI_model
         		->set('odour',$odour)
                 ->set('intensity',$intensity)
                 ->set('remark',$remark)
+                ->set('level',$level)
         		->set('fk_user',$userid)
                 ->set('createtime',date('Y-m-d H:i:s'))
             ->insert('t_marker')) {
@@ -173,15 +175,18 @@ class Marker_model extends CI_model
      * 更新marker，目前只能更新odour
      *
      **/
-    public function update_marker($markerid,$odour,$intensity,$remark) {
+    public function update_marker($markerid,$odour,$intensity,$remark,$level) {
     	
     	$odour = empty($odour)?99:(int)$odour;
         $intensity = empty($intensity)?1:(int)$intensity;
+
     	$fields = array();
     	
     	$fields['odour'] = $odour;
         $fields['intensity'] = $intensity;
         $fields['remark'] = $remark;
+        $fields['level'] = (int)$level;
+
     	if(!$this->db_main->set($fields)->where('pk_marker', $markerid)->update('t_marker')) {
     		$error = $this->db_main->error();
     		throw new Exception($error['message'], $error['code']);

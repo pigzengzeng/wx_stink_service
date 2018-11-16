@@ -173,6 +173,11 @@ class Marker extends BaseApiController {
 	public function save_marker(){
 		$this->check_login();
 
+		if( $this->user['state'] ==1 ){//屏蔽状态
+			$this->response($this->retv->gen_error(ErrorCode::$PermissionDenied));
+		}
+
+
 		$json_data = $this->input->raw_input_stream;
 
 		$data = json_decode($json_data);
@@ -192,6 +197,15 @@ class Marker extends BaseApiController {
 		// 	$this->response($this->retv->gen_error(ErrorCode::$UnBind) );
 		// }
 
+
+		$level = 0;
+
+		
+		if( $this->user['user_type'] ==1 ){//网格员打的点，level=1
+			$level = 1;
+		}
+		
+
 		
 		if(empty($data->markerId)){//新建
 			$lastid = 0;
@@ -201,6 +215,7 @@ class Marker extends BaseApiController {
 					$data->odour,
 					$data->intensity,
 					$data->remark,
+					$level,
 					$userid) ){
 				$r->lastid = $lastid;
 
@@ -217,7 +232,7 @@ class Marker extends BaseApiController {
 			if($marker['fk_user']!=$userid){
 				$this->response($this->retv->gen_error(ErrorCode::$PermissionDenied) );
 			}
-			$affect = $this->marker_model->update_marker($markerid,$data->odour,$data->intensity,$data->remark);
+			$affect = $this->marker_model->update_marker($markerid,$data->odour,$data->intensity,$data->remark,$level);
 
 			if(!empty($data->photos)){
 				$this->marker_photo_model->del_marker_photo_by_markerid($markerid);

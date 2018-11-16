@@ -23,6 +23,9 @@ curl -XPUT "http://127.0.0.1:9200/markers_v2" -H 'Content-Type: application/json
           "state" : {
             "type" : "short"
           },
+          "level" : {
+            "type" : "short"
+          },
           "createtime" : {
             "type" : "date",
             "format" : "yyyy-MM-dd HH:mm:ss"

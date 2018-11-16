@@ -126,11 +126,29 @@ class User extends BaseApiController {
 		}catch(Execaption $e){
 			$this->response($this->retv->gen_error(ErrorCode::$DbError,$e['message']));
 		}
-		
 
-		
+	}
 
-		
+	public function update_last_position(){
+		$this->check_login();
+		$json_data = $this->input->raw_input_stream;
+		$data = json_decode($json_data);
+		$r = new stdClass();
+		if(empty($data)){
+			$this->response($this->retv->gen_error(ErrorCode::$ParamError));
+		}
+		$userid = $this->session->userid;
+
+		$fields['last_lon'] = (double)$data->lon;
+		$fields['last_lat'] = (double)$data->lat;
+
+		try{
+			$affect = $this->user_model->update_user($userid,$fields);
+			$this->response($this->retv->gen_update($affect));
+
+		}catch(Execaption $e){
+			$this->response($this->retv->gen_error(ErrorCode::$DbError,$e['message']));
+		}
 
 	}
 
