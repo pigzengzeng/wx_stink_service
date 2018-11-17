@@ -7,10 +7,7 @@ class Res extends BaseApiController {
 
 	public function __construct(){
 		parent::__construct();
-		$this->load->library('curl');
-		$this->load->library('session');
-		$this->load->library('retv');
-		$this->load->model('user_model');
+		$this->load->library('curl');	
 		$this->load->model('res_model');
 		$this->load->library('upload');
 		$this->load->config('res');
@@ -28,7 +25,7 @@ class Res extends BaseApiController {
 		if($resid>0){
 			$file_name_key = md5($this->res_filename_key.$resid);
 		}else{
-			$this->response($this->retv->gen_error(ErrorCode::$DbError));
+			$this->fail(ErrorCode::$DbError);
 		}
 		$config = array();
 		
@@ -44,7 +41,7 @@ class Res extends BaseApiController {
 
 		
 		if ( ! $this->upload->do_upload('file')){
-			$this->response($this->retv->gen_error(ErrorCode::$UploadError,$this->upload->display_errors()));
+			$this->fail(ErrorCode::$UploadError,$this->upload->display_errors());
 		}
 		else{
 			$data = $this->upload->data();
@@ -68,12 +65,12 @@ class Res extends BaseApiController {
 			try{
 				if($this->res_model->update_res($resid,$file)>0){
 					$r['file_name_key'] = $file_name_key;
-					$this->response($this->retv->gen_result($r));
+					$this->success($r);
 				}else{
-					$this->response($this->retv->gen_error(ErrorCode::$UploadError));
+					$this->fail(ErrorCode::$UploadError);
 				}
 			}catch(Exception $e){
-				$this->response($this->retv->gen_error(ErrorCode::$UploadError,$e['message']));
+				$this->fail(ErrorCode::$UploadError,$e['message']);
 			}
 			
 			
