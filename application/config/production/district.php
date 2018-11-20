@@ -1413,7 +1413,7 @@ $config['district'] = [
       "south_west"=>["lon"=>115.910002,"lat"=>40.192024],
       "domain_color"=>"#FF0000DD",
       "stroke_color"=>"#FF0000DD",
-      "fill_color"=>"#FFFF002A",
+      "fill_color"=>"#FFFF001A",
 
       "coordinates"=>[ //可以包含多个环,目前不支持镂空
       	[//第一个环
