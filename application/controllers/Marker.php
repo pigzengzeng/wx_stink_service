@@ -21,24 +21,6 @@ class Marker extends BaseApiController {
 			'99'=>'难辨'
 	];
 	
-	private $city = [
-		'1'=>'北京',
-		'2'=>'日照'
-	];
-	//主键需要与$city对应
-	private $domain = [
-		'1'=>['wn'=>['lon'=>115.25027777777778,'lat'=>40.78888888888889],	//西北，左上角
-			  'en'=>['lon'=>115.25027777777778,'lat'=>40.78888888888889]],	//东南，右下角
-		'2'=>['wn'=>['lon'=>115.25027777777778,'lat'=>40.78888888888889],	//西北，左上角
-			  'en'=>['lon'=>115.25027777777778,'lat'=>40.78888888888889]],	//东南，右下角	
-	];
-	//主键需要与$city对应
-	private $geojson = [
-		'1'=>[
-			[[],[]]
-		]
-	];
-
 
 	const APPID = 'wxa6e3fde558ae29e2';
 	const APP_SECRET = '5b622697af174a0bb384433366801d49';
@@ -79,6 +61,13 @@ class Marker extends BaseApiController {
 		$y2 = $this->input->get('y2');
 		$time_flag =  $this->input->get('time_flag');
 		
+
+		$domain_pos = array();
+		$domain_pos['x1'] = $this->input->get('domain_x1');
+		$domain_pos['y1'] = $this->input->get('domain_y1');
+		$domain_pos['x2'] = $this->input->get('domain_x2');
+		$domain_pos['y2'] = $this->input->get('domain_y2');
+
 		
 
 		$time_flag = empty($time_flag)?0:$time_flag;
@@ -111,7 +100,7 @@ class Marker extends BaseApiController {
 				break;
 		}
 		try{
-			$markers = $this->marker_model->get_markers($x1,$y1,$x2,$y2,$time_from,$time_to,$userid);
+			$markers = $this->marker_model->get_markers($x1,$y1,$x2,$y2,$time_from,$time_to,$userid,$domain_pos);
 		}catch (Exception $e){
 			$this->success($r);
 		}

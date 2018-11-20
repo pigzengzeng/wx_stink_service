@@ -32,7 +32,7 @@ class Marker_model extends CI_model
 	 * 获取多个marker点
 	 */
     
-    public function get_markers($x1,$y1,$x2,$y2,$time_from,$time_to,$userid){
+    public function get_markers($x1,$y1,$x2,$y2,$time_from,$time_to,$userid,$domain_pos=array()){
     	/*数据库取数据
     	$size =100 ;
     	$this->db_query->select('*');
@@ -80,6 +80,16 @@ class Marker_model extends CI_model
                 'size'=>200
     		]
 		];
+
+        if( empty($userid) && !empty($domain_pos['x1']) && !empty($domain_pos['y1']) && !empty($domain_pos['x2']) &&!empty($domain_pos['y2']) ){
+            $v = array();
+            $v['geo_bounding_box']['location']['top_right']['lat'] = $domain_pos['y1'];
+            $v['geo_bounding_box']['location']['top_right']['lon'] = $domain_pos['x1'];
+            $v['geo_bounding_box']['location']['bottom_left']['lat'] = $domain_pos['y2'];
+            $v['geo_bounding_box']['location']['bottom_left']['lon'] = $domain_pos['x2'];
+            $params['body']['query']['bool']['filter'][] = $v;
+
+        }
         //$params['body']=array();
         if(!empty($time_from)){
             $params['body']['query']['bool']['must']['range']['lastupdate']['gte'] = $time_from;
