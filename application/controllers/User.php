@@ -39,21 +39,21 @@ class User extends BaseApiController {
 		$user = $this->user_model->get_user_by_openid($openid);
 		if(empty($user)){//数据库里还没有，选塞一条记录进去
 			$userid = $this->user_model->insert_user($openid);
-			$userinfo['userid'] = $userid;
+			$userinfo['userid'] = (int)$userid;
 			$userinfo['nickname'] = '';
 			$userinfo['realname'] = '';
 			$userinfo['tel'] = '';
-			$userinfo['gender'] = '0';
-			$userinfo['user_type'] = '0';
-			$userinfo['state'] = '0';
+			$userinfo['gender'] = 0;
+			$userinfo['user_type'] = 0;
+			$userinfo['state'] = 0;
 		}else{//数据库里已有记录，则使用
-			$userinfo['userid'] = $user['pk_user'];
+			$userinfo['userid'] = (int)$user['pk_user'];
 			$userinfo['nickname'] = $user['nickname'];
 			$userinfo['realname'] = $user['realname'];
 			$userinfo['tel'] = $user['tel'];
-			$userinfo['gender'] = $user['gender'];
-			$userinfo['user_type'] = $user['user_type'];
-			$userinfo['state'] = $user['state'];
+			$userinfo['gender'] = (int)$user['gender'];
+			$userinfo['user_type'] = (int)$user['user_type'];
+			$userinfo['state'] = (int)$user['state'];
 		}
 		$this->session->set_userdata(array(
 			'session_key'=>$session_key, //可以通过前端存储的session_key和后端取得的session_key对比判断登录是否已过期
@@ -61,7 +61,7 @@ class User extends BaseApiController {
 			'userid'=>$userinfo['userid'],
 		));
 		$r->session_id = $this->session->session_id;
-		$r->userid = $userinfo['userid'];
+		$r->userid = (int)$userinfo['userid'];
 		$r->userinfo = $userinfo;
 		$this->success($r);			
 		
