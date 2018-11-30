@@ -16,6 +16,8 @@ class Marker_to_es extends MysqlElasticSynchronizer {
 	const USE_GEARMAN = 0;
 	public function __construct(){
 		parent::__construct();
+		$this->load->helper('json_pretty');
+		
 		$this->load->config('elastic');
 		$es_config = $this->config->item('hosts');
 		$this->set_elastic_config($es_config);
@@ -57,7 +59,7 @@ JSON;
 	
 	public function log($sync_result){
 		
-		$this->load->helper('json_pretty');
+		
 		echo json_pretty($sync_result);
 	}
 	
