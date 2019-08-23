@@ -187,6 +187,22 @@ class Marker extends BaseApiController {
 
 		
 		if(empty($data->markerId)){//新建
+			$lon = $data->longitude;
+			$lat = $data->latitude;
+			$params = [
+				"key"=>"7de23dce7da811e6cac92d926932a1f9",
+				"location"=>"$lon,$lat"
+			];
+			$url = "https://restapi.amap.com/v3/geocode/regeo";
+			$gd_data = $this->curl->simple_get($url,$params);	
+			$gd_data = json_decode($gd_data);
+			
+			$province = empty($gd_data->regeocode->addressComponent->province)?'':$gd_data->regeocode->addressComponent->province;
+			$city = empty($gd_data->regeocode->addressComponent->city)?'':$gd_data->regeocode->addressComponent->city;
+			if(empty($city))$city=$province;
+			$district = empty($gd_data->regeocode->addressComponent->district)?'':$gd_data->regeocode->addressComponent->district;
+
+
 			$lastid = 0;
 			if( $lastid = $this->marker_model->add_marker(
 					$data->longitude, 
@@ -195,7 +211,11 @@ class Marker extends BaseApiController {
 					$data->intensity,
 					$data->remark,
 					$level,
-					$userid) ){
+					$userid,
+					$province,
+					$city,
+					$district
+				) ){
 				$r->lastid = $lastid;
 
 				$this->marker_photo_model->add_marker_photo($lastid,$data->photos);

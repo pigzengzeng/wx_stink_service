@@ -22,20 +22,21 @@ class Marker_to_es extends MysqlElasticSynchronizer {
 		$es_config = $this->config->item('hosts');
 		$this->set_elastic_config($es_config);
 		$this->set_mysql_db('default');
-
+		$index_name = 'markers_v3';
+		$type_name = 'test';
 		
 		
-		$this->set_select('pk_marker,longitude,latitude,odour,intensity,fk_user,state,level,createtime,lastupdate');//由于下面对mysql_read进行了重构，所以这里的设置只是为了用来统计需要处理的记录数,没必要返回过多字段
+		$this->set_select('pk_marker,longitude,latitude,odour,intensity,fk_user,state,level,createtime,lastupdate,province,city,district');//由于下面对mysql_read进行了重构，所以这里的设置只是为了用来统计需要处理的记录数,没必要返回过多字段
 		$this->set_table('t_marker');
 		$this->set_utime_field('lastupdate'); //最后更新时间字段，数据库的字段名
 		$this->set_primary_field('pk_marker'); //主键字段，如果最后更新时间相同，没有主键进行辅助排序，分页会造成数据丢失
 		
-		$this->set_elastic_index('markers_v2');
-		$this->set_elastic_index_type('test');
+		$this->set_elastic_index($index_name);
+		$this->set_elastic_index_type($type_name);
 		$this->set_elastic_id_field('pk_marker'); //ES上的字段名,使用schema时一定在下面的schema中的key出现，如果不使用schema，则一定在select中出现
 		
 		//保存最后更新时间，下次启动会从该时间作增量
-		$this->set_last_utime_filepath('/tmp/mysql_to_elastic_'.md5(__Class__));
+		$this->set_last_utime_filepath('/tmp/mysql_to_elastic_'.md5(__Class__).'_'.$index_name.'_'.$type_name);
 		
 		$this->set_size(self::SIZE);
 		$this->set_sleeptime(self::SLEEPTIME);

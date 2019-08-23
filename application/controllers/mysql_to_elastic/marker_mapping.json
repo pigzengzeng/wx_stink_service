@@ -1,4 +1,4 @@
-curl -XPUT "http://127.0.0.1:9200/markers_v2" -H 'Content-Type: application/json' -d '
+curl -XPUT "http://127.0.0.1:9200/markers_v3" -H 'Content-Type: application/json' -d '
 {
     "settings": {
         "number_of_shards":1,
@@ -39,6 +39,18 @@ curl -XPUT "http://127.0.0.1:9200/markers_v2" -H 'Content-Type: application/json
           },
           "location":{
             "type": "geo_point"
+          },
+          "province":{
+            "type" : "keyword",
+            "index":"true"
+          },
+          "city":{
+            "type" : "keyword",
+            "index":"true"
+          },
+          "district":{
+            "type" : "keyword",
+            "index":"true"
           }
         }
       }
@@ -89,11 +101,11 @@ supervisorctl restart marker2es
 curl -XPOST "http://127.0.0.1:9200/_aliases" -H 'Content-Type: application/json' -d '
 {
     "actions": [
-        { "remove": { "index": "marker_v1", "alias": "markers" }},
-        { "add":    { "index": "marker_v2", "alias": "markers" }}
+        { "remove": { "index": "markers_v2", "alias": "markers" }},
+        { "add":    { "index": "markers_v3", "alias": "markers" }}
     ]
 }
 '
 5.删除旧索引
 删除索引
-curl -XDELETE http://127.0.0.1:9200/markers_v2
+curl -XDELETE http://127.0.0.1:9200/markers_v3

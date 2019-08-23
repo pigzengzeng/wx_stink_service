@@ -92,12 +92,12 @@ class Marker_model extends CI_model
         }
         //$params['body']=array();
         if(!empty($time_from)){
-            $params['body']['query']['bool']['must']['range']['lastupdate']['gte'] = $time_from;
+            $params['body']['query']['bool']['must']['range']['createtime']['gte'] = $time_from;
             //$params['body']['query']['range']['lastupdate']['gte'] = $time_from;
         }
         
         if(!empty($time_to)){
-            $params['body']['query']['bool']['must']['range']['lastupdate']['lte'] = $time_to;
+            $params['body']['query']['bool']['must']['range']['createtime']['lte'] = $time_to;
         }
         
         if(!empty($userid)){
@@ -137,14 +137,16 @@ class Marker_model extends CI_model
      * 新增点
      *
      **/
-    public function add_marker($longitude,$latitude,$odour,$intensity,$remark,$level,$userid) {
+    public function add_marker($longitude,$latitude,$odour,$intensity,$remark,$level,$userid,$province,$city,$district) {
         $fields = array();
         $longitude = empty((double)$longitude)?0:(double)$longitude;
         $latitude = empty((double)$latitude)?0:(double)$latitude;
         $odour = empty($odour)?99:(int)$odour;
         $intensity = empty($intensity)?1:(int)$intensity;
         $level = (int)$level;
-        
+        $province = trim($province);
+        $city = trim($city);
+        $district = trim($district);
         if(!$this->db_main
         		->set('longitude', $longitude)
         		->set('latitude', $latitude)
@@ -154,6 +156,9 @@ class Marker_model extends CI_model
                 ->set('level',$level)
         		->set('fk_user',$userid)
                 ->set('createtime',date('Y-m-d H:i:s'))
+                ->set('province',$province)
+                ->set('city',$city)
+                ->set('district',$district)                
             ->insert('t_marker')) {
             $error = $this->db_main->error();
             throw new Exception($error['message'], $error['code']);
